@@ -16,12 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with pysshrp.  If not, see <http://www.gnu.org/licenses/>.
 
-import pysshrp.common
-from pysshrp.configparser import ConfigParser
-from pysshrp.serverthread import ServerThread, RequestHandler
-from pysshrp.sftpinterface import SFTPInterface
-from pysshrp.clientthread import ClientThread
+import logging
 
-# A class used for catched critical exceptions
-class PysshrpException(Exception):
-	pass
+from pysshrp.configparser import ConfigParser
+
+# Global variables
+logger = logging.getLogger('pysshrp')
+config = ConfigParser
+running = False

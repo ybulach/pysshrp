@@ -15,3 +15,61 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pysshrp.  If not, see <http://www.gnu.org/licenses/>.
+
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+import argparse, logging, pysshrp, signal, threading, time
+
+# Handle signals
+def signals(signum, frame):
+	pysshrp.common.logger.info('Shutting down pysshrpd')
+	pysshrp.common.running = False
+
+if __name__ == '__main__':
+	try:
+		logging.basicConfig(level=logging.INFO)
+
+		# Parse arguments
+		argparser = argparse.ArgumentParser(description='A Python SSH/SFTP reverse proxy')
+		argparser.add_argument('-c', '--config', help='path to a pysshrp configuration file', required=True)
+		args = argparser.parse_args()
+
+		# Parse configuration file
+		try:
+			config = {}
+			execfile(args.config, config)
+			pysshrp.common.config = pysshrp.ConfigParser(**config)
+		except IOError:
+			raise pysshrp.PysshrpException('Failed to open configuration file "%s"' % args.config)
+		except Exception as e:
+			raise pysshrp.PysshrpException('Syntax error in "%s": %s' % (args.config, e))
+
+		# Launch server
+		pysshrp.ServerThread.allow_reuse_address = True
+		server = pysshrp.ServerThread(('0.0.0.0', pysshrp.common.config.listen), pysshrp.RequestHandler)
+		thread = threading.Thread(target=server.serve_forever)
+		thread.daemon = False
+		server.daemon_threads = True
+
+		signal.signal(signal.SIGTERM, signals)
+		signal.signal(signal.SIGINT, signals)
+
+		pysshrp.common.running = True
+		pysshrp.common.logger.info('Starting pysshrpd server thread')
+		thread.start()
+
+		while pysshrp.common.running:
+			time.sleep(1)
+
+		server.shutdown()
+		server.server_close()
+
+		thread.join()
+		pysshrp.common.logger.info('Server thread of pysshrpd terminated')
+
+	# Catched critical exception
+	except pysshrp.PysshrpException as e:
+		pysshrp.common.logger.critical('%s\n' % e)
+		exit(1)

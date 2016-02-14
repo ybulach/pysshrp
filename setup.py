@@ -25,7 +25,7 @@ setup(
 	name = 'pysshrp',
 	description = 'A Python SSH/SFTP reverse proxy',
 	version = '0.1',
-	license = 'LGPL'
+	license = 'LGPL',
 	author = 'Yamine BULACH',
 	author_email = 'contact@yamine-bulach.eu',
 	url = 'https://github.com/ybulach/pysshrp',
