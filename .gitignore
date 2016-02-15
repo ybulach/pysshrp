@@ -1,1 +1,4 @@
 *.pyc
+build/
+dist/
+pysshrp.egg-info/

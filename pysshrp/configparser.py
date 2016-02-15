@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with pysshrp.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging, paramiko
+import logging, paramiko, pysshrp
 
 class ConfigParser:
 	# Default values
