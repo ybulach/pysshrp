@@ -29,8 +29,6 @@ def signals(signum, frame):
 
 if __name__ == '__main__':
 	try:
-		logging.basicConfig(level=logging.INFO)
-
 		# Parse arguments
 		argparser = argparse.ArgumentParser(description='A Python SSH/SFTP reverse proxy')
 		argparser.add_argument('-c', '--config', help='path to a pysshrp configuration file', required=True)
@@ -41,6 +39,7 @@ if __name__ == '__main__':
 			config = {}
 			execfile(args.config, config)
 			pysshrp.common.config = pysshrp.ConfigParser(**config)
+			logging.basicConfig(level=getattr(logging, pysshrp.common.config.level))
 		except IOError:
 			raise pysshrp.PysshrpException('Failed to open configuration file "%s"' % args.config)
 		except Exception as e:

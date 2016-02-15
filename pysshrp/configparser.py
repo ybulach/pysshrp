@@ -46,8 +46,6 @@ class ConfigParser:
 				setattr(self, key, value)
 
 		# Additional configuration
-		logging.basicConfig(level=getattr(logging, self.level))
-
 		try:
 			self.key = paramiko.RSAKey.from_private_key_file(self.key)
 		except IOError:
