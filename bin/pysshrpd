@@ -30,8 +30,8 @@ def signals(signum, frame):
 if __name__ == '__main__':
 	try:
 		logging.basicConfig(
-			level=logging.CRITICAL,
-			format='%(asctime)-15s %(message)s'
+			level=logging.INFO,
+			format='%(asctime)-15s %(levelname)s - %(message)s'
 		)
 
 		# Parse arguments

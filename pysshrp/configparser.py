@@ -31,6 +31,8 @@ class ConfigParser:
 	servers = []
 
 	def __init__(self, *args, **kwargs):
+		pysshrp.common.logger.info('Loading configuration')
+
 		log_values = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
 		for key, value in kwargs.items():
 			# Check types
