@@ -8,7 +8,11 @@ listen = 2200
 level = 'INFO'
 
 # Path to an SSH private key to use for the server thread
-key = '/path/to/server.key'
+key = 'server.key'
+
+# The user/group to run client thread as (when server thread runned as root)
+#user = "pysshrp"
+#group = "pysshrp"
 
 # Define the servers to serve via pysshrp
 servers = [
