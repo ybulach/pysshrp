@@ -62,6 +62,8 @@ class ConfigParser:
 		except paramiko.SSHException:
 			raise pysshrp.PysshrpException('invalid SSH key from "%s"' % self.key)
 
+		logging.getLogger().setLevel(getattr(logging, self.level))
+
 		try:
 			if self.user:
 				self.userId = pwd.getpwnam(self.user).pw_uid
