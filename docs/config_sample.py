@@ -1,7 +1,7 @@
 # This configuration file uses Python syntax
 
-# Bind to this port
-listen = 2200
+# Bind to this address/port
+listen = '0.0.0.0:2200'
 
 # Define the log level (using values from Python's logging module)
 # https://docs.python.org/2/library/logging.html#levels

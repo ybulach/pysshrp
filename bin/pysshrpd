@@ -51,7 +51,8 @@ if __name__ == '__main__':
 
 		# Launch server
 		pysshrp.ServerThread.allow_reuse_address = True
-		server = pysshrp.ServerThread(('0.0.0.0', pysshrp.common.config.listen), pysshrp.RequestHandler)
+		listen = (pysshrp.common.config.listenAddress, pysshrp.common.config.listenPort)
+		server = pysshrp.ServerThread(listen, pysshrp.RequestHandler)
 		thread = threading.Thread(target=server.serve_forever)
 		thread.daemon = False
 		server.daemon_threads = True
@@ -60,7 +61,7 @@ if __name__ == '__main__':
 		signal.signal(signal.SIGINT, signals)
 
 		pysshrp.common.running = True
-		pysshrp.common.logger.info('Starting pysshrpd server thread')
+		pysshrp.common.logger.info('Starting pysshrpd server thread on %s:%d' % listen)
 		thread.start()
 
 		while pysshrp.common.running:

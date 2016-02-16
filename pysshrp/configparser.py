@@ -16,11 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with pysshrp.  If not, see <http://www.gnu.org/licenses/>.
 
-import grp, logging, paramiko, pwd, pysshrp
+import grp, logging, paramiko, pwd, pysshrp, re
 
 class ConfigParser:
 	# Default values
-	listen = 2200
+	listen = '0.0.0.0:2200'
+	listenAddress = ''
+	listenPort = ''
 	key = ''
 	keyData = None
 	level = 'CRITICAL'
@@ -36,8 +38,8 @@ class ConfigParser:
 		log_values = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
 		for key, value in kwargs.items():
 			# Check types
-			if (key == 'listen') and not isinstance(value, int):
-				raise Exception('value of "listen" must be an integer')
+			if (key == 'listen') and not re.search(r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):\d{1,5}$', value):
+				raise Exception('invalid syntax of "listen". Might be something like "0.0.0.0:2200".')
 			elif (key == 'key') and not isinstance(value, str):
 				raise Exception('value of "key" must be a string')
 			elif (key == 'level') and not (value in log_values):
@@ -57,6 +59,12 @@ class ConfigParser:
 				setattr(self, key, value)
 
 		# Additional configuration
+		try:
+			self.listenAddress = self.listen[:self.listen.find(':')]
+			self.listenPort = int(self.listen[self.listen.find(':')+1:])
+		except Exception:
+			raise pysshrp.PysshrpException('invalid address or port in "listen"')
+
 		try:
 			self.keyData = paramiko.RSAKey.from_private_key_file(self.key)
 		except IOError:
