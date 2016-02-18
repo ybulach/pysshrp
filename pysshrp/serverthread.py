@@ -33,7 +33,7 @@ class RequestHandler(SocketServer.BaseRequestHandler):
 		SocketServer.BaseRequestHandler.__init__(self, request, client_address, server)
 
 	def setup(self):
-		pysshrp.common.logger.info('New client thread started')
+		pysshrp.common.logger.info('New client thread started from %s:%d', % self.client_address)
 		self.clientthread = ClientThread()
 
 		return SocketServer.BaseRequestHandler.setup(self)
@@ -49,9 +49,9 @@ class RequestHandler(SocketServer.BaseRequestHandler):
 			time.sleep(1)
 
 	def finish(self):
-		if self.clientthread.client:
+		if ('client' in self.clientthread.__dict__) and self.clientthread.client:
 			self.clientthread.client.close()
-		pysshrp.common.logger.info('Client thread ended')
+		pysshrp.common.logger.info('Client thread ended from %s:%d', % self.client_address)
 
 		return SocketServer.BaseRequestHandler.finish(self)
 
