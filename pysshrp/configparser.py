@@ -78,7 +78,7 @@ class ConfigParser:
 			if self.user:
 				self.userId = pwd.getpwnam(self.user).pw_uid
 			if self.group:
-				self.groupId = pwd.getgrnam(self.group).gr_gid
+				self.groupId = grp.getgrnam(self.group).gr_gid
 		except OSError:
 			raise pysshrp.PysshrpException('unable to find uid or gid of user %s or group %s' % (self.user, self.group))
 
