@@ -88,6 +88,7 @@ class ConfigUpstream():
 	upstream_host = ''
 	upstream_user = ''
 	upstream_port = 22
+	upstream_root_path = ''
 
 	def __init__(self, *args, **kwargs):
 		for key, value in kwargs.items():
@@ -99,6 +100,8 @@ class ConfigUpstream():
 				raise Exception('value of "upstream_user" must be a string')
 			elif (key == 'upstream_port') and not isinstance(value, int):
 				raise Exception('value of "upstream_port" must be an integer')
+			elif (key == 'upstream_root_path') and not isinstance(value, str):
+				raise Exception('value of "upstream_root_path" must be a string')
 
 			setattr(self, key, value)
 

@@ -50,6 +50,10 @@ class ClientThread(paramiko.ServerInterface):
 			upstream_user = server.upstream_user
 
 		upstream_port = server.upstream_port
+		self.root_path = server.upstream_root_path
+
+		if not upstream_user:
+			upstream_user = username
 
 		# Connect to the upstream
 		try:

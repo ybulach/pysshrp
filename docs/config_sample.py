@@ -23,7 +23,8 @@ servers = [
 	#
 	# 	'upstream_host': '',	# the address of the upstream SSH server
 	# 	'upstream_user': ''		# set another login for the upstream server
-	# 	'upstream_port': 0		# the port of the upstream server
+	# 	'upstream_port': 0,		# the port of the upstream server
+	# 	'upstream_root_path': ''# the base path for SFTP connections
 	# }
 	#
 	# Regex allows extractring patterns, to use them in upstream_* variables
@@ -43,6 +44,7 @@ servers = [
 	{
 		'user': r'^web(?P<srv_id>\d+)$',
 		'upstream_host': 'web\g<srv_id>.example.lan',
-		'upstream_user': 'root'
+		'upstream_user': 'root',
+		'upstream_root_path': '/var/www'
 	}
 ]
