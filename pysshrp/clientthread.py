@@ -48,10 +48,13 @@ class ClientThread(paramiko.ServerInterface):
 		else:
 			upstream_host = server.upstream_host
 			upstream_user = server.upstream_user
+
 		upstream_port = server.upstream_port
 
-		# Connect to the upstreal
+		# Connect to the upstream
 		try:
+			pysshrp.common.logger.info('New upstream connection to %s@%s:%d' % (upstream_user, upstream_host, upstream_port))
+
 			self.client = paramiko.Transport((upstream_host, upstream_port))
 			self.client.connect(None, upstream_user, password)
 
