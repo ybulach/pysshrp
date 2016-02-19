@@ -1,0 +1,9 @@
+[Unit]
+Description=A Python SSH/SFTP reverse proxy
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/pysshrpd -c /etc/pysshrp/config.py
+
+[Install]
+WantedBy=multi-user.target
