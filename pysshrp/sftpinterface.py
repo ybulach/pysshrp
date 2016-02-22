@@ -26,6 +26,10 @@ class SFTPInterface(paramiko.SFTPServerInterface):
 		self.root_path = server.root_path if ('root_path' in server.__dict__) else ''
 
 	def _parsePath(self, path):
+		if not self.root_path:
+			return path
+
+		# Prevent security violation when root_path provided
 		result = os.path.normpath(self.root_path + '/' + path)
 		if not result.startswith(self.root_path):
 			raise IOError(errno.EACCES)
