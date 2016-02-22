@@ -18,6 +18,10 @@
 
 import grp, logging, paramiko, pwd, pysshrp, re
 
+# A class used for configuration syntax exceptions
+class ConfigurationException(Exception):
+	pass
+
 class ConfigParser:
 	# Default values
 	listen = '0.0.0.0:2200'
@@ -39,17 +43,17 @@ class ConfigParser:
 		for key, value in kwargs.items():
 			# Check types
 			if (key == 'listen') and not re.search(r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):\d{1,5}$', value):
-				raise Exception('invalid syntax of "listen". Might be something like "0.0.0.0:2200".')
+				raise ConfigurationException('invalid syntax of "listen". Might be something like "0.0.0.0:2200".')
 			elif (key == 'key') and not isinstance(value, str):
-				raise Exception('value of "key" must be a string')
+				raise ConfigurationException('value of "key" must be a string')
 			elif (key == 'level') and not (value in log_values):
-				raise Exception('value of "level" must be one of: %s' % ', '.join([i for i in log_values]))
+				raise ConfigurationException('value of "level" must be one of: %s' % ', '.join([i for i in log_values]))
 			elif (key == 'user') and not isinstance(value, str):
-				raise Exception('value of "user" must be a string')
+				raise ConfigurationException('value of "user" must be a string')
 			elif (key == 'group') and not isinstance(value, str):
-				raise Exception('value of "group" must be a string')
+				raise ConfigurationException('value of "group" must be a string')
 			elif (key == 'servers') and not isinstance(value, list):
-				raise Exception('value of "servers" must be an array')
+				raise ConfigurationException('value of "servers" must be an array')
 
 			# Set value
 			if key == 'servers':
@@ -62,7 +66,7 @@ class ConfigParser:
 		try:
 			self.listenAddress = self.listen[:self.listen.find(':')]
 			self.listenPort = int(self.listen[self.listen.find(':')+1:])
-		except Exception:
+		except:
 			raise pysshrp.PysshrpException('invalid address or port in "listen"')
 
 		try:
@@ -77,10 +81,14 @@ class ConfigParser:
 		try:
 			if self.user:
 				self.userId = pwd.getpwnam(self.user).pw_uid
+		except:
+			raise pysshrp.PysshrpException('unable to find uid of user "%s"' % self.user)
+
+		try:
 			if self.group:
 				self.groupId = grp.getgrnam(self.group).gr_gid
-		except OSError:
-			raise pysshrp.PysshrpException('unable to find uid or gid of user %s or group %s' % (self.user, self.group))
+		except:
+			raise pysshrp.PysshrpException('unable to find gid of group "%s"' % self.group)
 
 class ConfigUpstream():
 	# Default values
@@ -93,15 +101,15 @@ class ConfigUpstream():
 	def __init__(self, *args, **kwargs):
 		for key, value in kwargs.items():
 			if (key == 'user') and not isinstance(value, str):
-				raise Exception('value of "user" must be a string')
+				raise ConfigurationException('value of "user" must be a string')
 			elif (key == 'upstream_host') and not isinstance(value, str):
-				raise Exception('value of "upstream_host" must be a string')
+				raise ConfigurationException('value of "upstream_host" must be a string')
 			elif (key == 'upstream_user') and not isinstance(value, str):
-				raise Exception('value of "upstream_user" must be a string')
+				raise ConfigurationException('value of "upstream_user" must be a string')
 			elif (key == 'upstream_port') and not isinstance(value, int):
-				raise Exception('value of "upstream_port" must be an integer')
+				raise ConfigurationException('value of "upstream_port" must be an integer')
 			elif (key == 'upstream_root_path') and not isinstance(value, str):
-				raise Exception('value of "upstream_root_path" must be a string')
+				raise ConfigurationException('value of "upstream_root_path" must be a string')
 
 			setattr(self, key, value)
 

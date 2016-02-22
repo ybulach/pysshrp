@@ -46,8 +46,10 @@ if __name__ == '__main__':
 			pysshrp.common.config = pysshrp.ConfigParser(**config)
 		except IOError:
 			raise pysshrp.PysshrpException('Failed to open configuration file "%s"' % args.config)
-		except Exception as e:
+		except pysshrp.ConfigurationException as e:
 			raise pysshrp.PysshrpException('Syntax error in "%s": %s' % (args.config, e))
+		except pysshrp.PysshrpException as e:
+			raise pysshrp.PysshrpException('Configuration error: %s' % e)
 
 		# Launch server
 		pysshrp.ServerThread.allow_reuse_address = True

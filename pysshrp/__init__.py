@@ -17,7 +17,7 @@
 # along with pysshrp.  If not, see <http://www.gnu.org/licenses/>.
 
 import pysshrp.common
-from pysshrp.configparser import ConfigParser
+from pysshrp.configparser import ConfigParser, ConfigurationException
 from pysshrp.serverthread import ServerThread, RequestHandler
 from pysshrp.sftpinterface import SFTPInterface
 from pysshrp.clientthread import ClientThread
