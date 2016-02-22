@@ -20,7 +20,7 @@ import errno, os, paramiko
 
 class SFTPInterface(paramiko.SFTPServerInterface):
 	def __init__(self, server, *largs, **kwargs):
-		super(paramiko.SFTPServerInterface, self).__init__(*largs, **kwargs)
+		super(SFTPInterface, self).__init__(server, *largs, **kwargs)
 
 		self.client = paramiko.SFTPClient.from_transport(server.client)
 		self.root_path = server.root_path if ('root_path' in server.__dict__) else ''
