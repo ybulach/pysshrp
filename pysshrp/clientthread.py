@@ -21,24 +21,36 @@ import paramiko, re
 import pysshrp.common
 
 class ClientThread(paramiko.ServerInterface):
-	def check_auth_password(self, username, password):
-		regex_extracts = None
-		found = False
+	def __init__(self):
+		self.client = None
+		self.root_path = ''
+		self.shellchannel = None
+		self.shellthread = None
 
-		# Check the username
+	def get_allowed_auths(self, username):
+		return 'password'
+
+	def _findUpstream(self, username):
 		for server in pysshrp.common.config.servers:
 			# Regex
 			if server.user.startswith('^'):
 				regex_extracts = re.search(server.user, username)
 				if regex_extracts:
-					found = True
-					break
+					return (regex_extracts, server)
 			# String
-			if server.user == username:
-				found = True
-				break
+			elif server.user == username:
+				return (None, server)
 
-		if not found:
+		return (None, None)
+
+	def check_auth_password(self, username, password):
+		regex_extracts = None
+		found = False
+
+		# Check the username
+		regex_extracts, server = self._findUpstream(username)
+
+		if not server:
 			return paramiko.AUTH_FAILED
 
 		# Get upstream configuration
@@ -60,7 +72,9 @@ class ClientThread(paramiko.ServerInterface):
 			pysshrp.common.logger.info('New upstream connection to %s@%s:%d' % (upstream_user, upstream_host, upstream_port))
 
 			self.client = paramiko.Transport((upstream_host, upstream_port))
-			self.client.connect(None, upstream_user, password)
+			self.client.start_client()
+			self.client.auth_password(upstream_user, password)
+			self.shellchannel = self.client.open_session()
 
 			return paramiko.AUTH_SUCCESSFUL
 		except paramiko.SSHException:
@@ -73,3 +87,23 @@ class ClientThread(paramiko.ServerInterface):
 		if kind == 'session':
 			return paramiko.OPEN_SUCCEEDED
 		return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
+
+	def check_channel_exec_request(self, channel, command):
+		return False
+
+	def check_channel_shell_request(self, channel):
+		try:
+			self.shellchannel.invoke_shell()
+
+			self.shellthread = pysshrp.SSHInterface(channel, self.shellchannel)
+			self.shellthread.start()
+			return True
+		except paramiko.SSHException:
+			return False
+
+	def check_channel_pty_request(self, channel, term, width, height, pixelwidth, pixelheight, modes):
+		try:
+			self.shellchannel.get_pty(term, width, height, pixelwidth, pixelheight)
+			return True
+		except paramiko.SSHException:
+			return False

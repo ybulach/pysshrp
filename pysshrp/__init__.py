@@ -19,8 +19,9 @@
 import pysshrp.common
 from pysshrp.configparser import ConfigParser, ConfigurationException
 from pysshrp.serverthread import ServerThread, RequestHandler
-from pysshrp.sftpinterface import SFTPInterface
 from pysshrp.clientthread import ClientThread
+from pysshrp.sftpinterface import SFTPInterface
+from pysshrp.sshinterface import SSHInterface
 
 # A class used for catched critical exceptions
 class PysshrpException(Exception):
