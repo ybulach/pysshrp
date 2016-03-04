@@ -33,41 +33,46 @@ class ClientThread(paramiko.ServerInterface):
 
 	def _findUpstream(self, username):
 		self.upstream = None
+		regex_extracts = None
 
+		# Find the best upstream match for the given username
 		for server in pysshrp.common.config.servers:
-			# Regex
+			# Regex (less accurate)
 			if server.user.startswith('^'):
 				regex_extracts = re.search(server.user, username)
 				if regex_extracts:
+					# Keep searching for something more accurate
 					self.upstream = server
-					return (regex_extracts, server)
-			# String
-			elif server.user == username:
-				self.upstream = server
-				return (None, server)
 
-		return (None, None)
+			# String (more accurate)
+			elif server.user == username:
+				# Nothing can be more accurate
+				regex_extracts = None
+				self.upstream = server
+				break
+
+		return regex_extracts
 
 	def check_auth_password(self, username, password):
 		regex_extracts = None
 		found = False
 
 		# Check the username
-		regex_extracts, server = self._findUpstream(username)
+		regex_extracts = self._findUpstream(username)
 
-		if not server:
+		if not self.upstream:
 			return paramiko.AUTH_FAILED
 
 		# Get upstream configuration
 		if regex_extracts:
-			upstream_host = regex_extracts.expand(server.upstream_host)
-			upstream_user = regex_extracts.expand(server.upstream_user)
+			upstream_host = regex_extracts.expand(self.upstream.upstream_host)
+			upstream_user = regex_extracts.expand(self.upstream.upstream_user)
 		else:
-			upstream_host = server.upstream_host
-			upstream_user = server.upstream_user
+			upstream_host = self.upstream.upstream_host
+			upstream_user = self.upstream.upstream_user
 
-		upstream_port = server.upstream_port
-		self.root_path = server.upstream_root_path
+		upstream_port = self.upstream.upstream_port
+		self.root_path = self.upstream.upstream_root_path
 
 		if not upstream_user:
 			upstream_user = username
