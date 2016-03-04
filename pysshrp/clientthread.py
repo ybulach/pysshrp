@@ -107,3 +107,10 @@ class ClientThread(paramiko.ServerInterface):
 			return True
 		except paramiko.SSHException:
 			return False
+
+	def check_channel_subsystem_request(self, channel, name):
+		try:
+			super(ClientThread, self).check_channel_subsystem_request(channel, name)
+			return True
+		except paramiko.SSHException:
+			return False
