@@ -120,5 +120,7 @@ class ConfigUpstream():
 			setattr(self, key, value)
 
 		# Additional configuration
+		if not self.user:
+			raise pysshrp.PysshrpException('"user" is mandatory in "servers"')
 		if not self.upstream_host:
-			raise PysshrpException('upstream_host is mandatory')
+			raise pysshrp.PysshrpException('"upstream_host" is mandatory in "servers"')
