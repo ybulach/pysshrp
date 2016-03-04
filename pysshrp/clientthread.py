@@ -23,6 +23,7 @@ import pysshrp.common
 class ClientThread(paramiko.ServerInterface):
 	def __init__(self):
 		self.client = None
+		self.upstream = None
 		self.root_path = ''
 		self.shellchannel = None
 		self.shellthread = None
@@ -31,14 +32,18 @@ class ClientThread(paramiko.ServerInterface):
 		return 'password'
 
 	def _findUpstream(self, username):
+		self.upstream = None
+
 		for server in pysshrp.common.config.servers:
 			# Regex
 			if server.user.startswith('^'):
 				regex_extracts = re.search(server.user, username)
 				if regex_extracts:
+					self.upstream = server
 					return (regex_extracts, server)
 			# String
 			elif server.user == username:
+				self.upstream = server
 				return (None, server)
 
 		return (None, None)
@@ -92,6 +97,9 @@ class ClientThread(paramiko.ServerInterface):
 		return False
 
 	def check_channel_shell_request(self, channel):
+		if not self.upstream or not self.upstream.allow_ssh:
+			return False
+
 		try:
 			self.shellchannel.invoke_shell()
 
@@ -102,6 +110,9 @@ class ClientThread(paramiko.ServerInterface):
 			return False
 
 	def check_channel_pty_request(self, channel, term, width, height, pixelwidth, pixelheight, modes):
+		if not self.upstream or not self.upstream.allow_ssh:
+			return False
+
 		try:
 			self.shellchannel.get_pty(term, width, height, pixelwidth, pixelheight)
 			return True
@@ -109,6 +120,9 @@ class ClientThread(paramiko.ServerInterface):
 			return False
 
 	def check_channel_subsystem_request(self, channel, name):
+		if not self.upstream or not self.upstream.allow_sftp:
+			return False
+
 		try:
 			super(ClientThread, self).check_channel_subsystem_request(channel, name)
 			return True

@@ -97,6 +97,8 @@ class ConfigUpstream():
 	upstream_user = ''
 	upstream_port = 22
 	upstream_root_path = ''
+	allow_ssh = True
+	allow_sftp = True
 
 	def __init__(self, *args, **kwargs):
 		for key, value in kwargs.items():
@@ -110,6 +112,10 @@ class ConfigUpstream():
 				raise ConfigurationException('value of "upstream_port" must be an integer')
 			elif (key == 'upstream_root_path') and not isinstance(value, str):
 				raise ConfigurationException('value of "upstream_root_path" must be a string')
+			elif (key == 'allow_ssh') and not isinstance(value, bool):
+				raise ConfigurationException('value of "allow_ssh" must be a boolean')
+			elif (key == 'allow_sftp') and not isinstance(value, bool):
+				raise ConfigurationException('value of "allow_sftp" must be a boolean')
 
 			setattr(self, key, value)
 
