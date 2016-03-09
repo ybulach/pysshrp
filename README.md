@@ -24,7 +24,7 @@ This commands will quickly install `pysshrp` and associated `pysshrpd` daemon (t
 
 This will create a configuration directory in `/etc/pysshrp` with a server key (`server.key`), a sample configuration (`config.py`) and a dedicated user/group (`pysshrp`) to run the daemon threads as.
 
-## systemd
+### systemd
 For systemd-based OS, you can use the service file:
 
 	cp docs/systemd_sample.service /etc/systemd/system/
@@ -38,11 +38,11 @@ and logs can be seens with:
 
 	systemctl status pysshrpd
 
-## LSB init
+### LSB init
 For LSB init-based OS, you can use the init script:
 
-	cp docs/lsbinit_sample /etc/init.d/
-	chmod +x /etc/init.d/lsbinit_sample
+	cp docs/lsbinit_sample /etc/init.d/pysshrpd
+	chmod +x /etc/init.d/pysshrpd
 
 Once the `/etc/pysshrp/config.py` file has been edited to suit your needs (see **Configuration** below), the service can be started with:
 
