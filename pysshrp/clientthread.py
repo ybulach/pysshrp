@@ -77,13 +77,19 @@ class ClientThread(paramiko.ServerInterface):
 		if not upstream_user:
 			upstream_user = username
 
+		# Local authentication
+		if self.upstream.password and not (self.upstream.password == password):
+			return paramiko.AUTH_FAILED
+
+		upstream_password = self.upstream.upstream_password if self.upstream.upstream_password else password
+
 		# Connect to the upstream
 		try:
 			pysshrp.common.logger.info('New upstream connection to %s@%s:%d' % (upstream_user, upstream_host, upstream_port))
 
 			self.client = paramiko.Transport((upstream_host, upstream_port))
 			self.client.start_client()
-			self.client.auth_password(upstream_user, password)
+			self.client.auth_password(upstream_user, upstream_password)
 			self.shellchannel = self.client.open_session()
 
 			return paramiko.AUTH_SUCCESSFUL

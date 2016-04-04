@@ -93,8 +93,10 @@ class ConfigParser:
 class ConfigUpstream():
 	# Default values
 	user = ''
+	password = ''
 	upstream_host = ''
 	upstream_user = ''
+	upstream_password = ''
 	upstream_port = 22
 	upstream_root_path = ''
 	allow_ssh = True
@@ -104,10 +106,14 @@ class ConfigUpstream():
 		for key, value in kwargs.items():
 			if (key == 'user') and not isinstance(value, str):
 				raise ConfigurationException('value of "user" must be a string')
+			elif (key == 'password') and not isinstance(value, str):
+				raise ConfigurationException('value of "password" must be a string')
 			elif (key == 'upstream_host') and not isinstance(value, str):
 				raise ConfigurationException('value of "upstream_host" must be a string')
 			elif (key == 'upstream_user') and not isinstance(value, str):
 				raise ConfigurationException('value of "upstream_user" must be a string')
+			elif (key == 'upstream_password') and not isinstance(value, str):
+				raise ConfigurationException('value of "upstream_password" must be a string')
 			elif (key == 'upstream_port') and not isinstance(value, int):
 				raise ConfigurationException('value of "upstream_port" must be an integer')
 			elif (key == 'upstream_root_path') and not isinstance(value, str):

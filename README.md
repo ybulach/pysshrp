@@ -64,8 +64,10 @@ The below variables take care of the configuration of the `pysshrpd` daemon itse
 Upstream servers configuration is made in `servers` (must be an **array**). Each upstream server may define some of the below parameters (in a **dict**).
 
 - `user`: **MANDATORY** a string/regex for the incoming login:
+- `password`: use a local password / do not try to login to the upstream using this password (useful with `upstream_password`)
 - `upstream_host`: **MANDATORY** the address of the upstream SSH server
 - `upstream_user`: set another login for the upstream server
+- `upstream_password`: set another password for the upstream server
 - `upstream_port`: the port of the upstream server
 - `upstream_root_path`: the base path for SFTP connections (client will not be able to go in a parent directory)
 
