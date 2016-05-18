@@ -29,10 +29,10 @@ class ClientThread(paramiko.ServerInterface):
 		self.shellthread = None
 
 	def get_allowed_auths(self, username):
-		return 'password'
+		return 'password,publickey'
 
 	def _findUpstream(self, username):
-		self.upstream = None
+		upstream = None
 		regex_extracts = None
 
 		# Find the best upstream match for the given username
@@ -42,62 +42,96 @@ class ClientThread(paramiko.ServerInterface):
 				regex_extracts = re.search(server.user, username)
 				if regex_extracts:
 					# Keep searching for something more accurate
-					self.upstream = server
+					upstream = server
 
 			# String (more accurate)
 			elif server.user == username:
 				# Nothing can be more accurate
 				regex_extracts = None
-				self.upstream = server
+				upstream = server
 				break
-
-		return regex_extracts
-
-	def check_auth_password(self, username, password):
-		regex_extracts = None
-		found = False
-
-		# Check the username
-		regex_extracts = self._findUpstream(username)
-
-		if not self.upstream:
-			return paramiko.AUTH_FAILED
 
 		# Get upstream configuration
 		if regex_extracts:
-			upstream_host = regex_extracts.expand(self.upstream.upstream_host)
-			upstream_user = regex_extracts.expand(self.upstream.upstream_user)
+			upstream.upstream_host = regex_extracts.expand(upstream.upstream_host)
+			upstream.upstream_user = regex_extracts.expand(upstream.upstream_user)
 		else:
-			upstream_host = self.upstream.upstream_host
-			upstream_user = self.upstream.upstream_user
+			upstream.upstream_host = upstream.upstream_host
+			upstream.upstream_user = upstream.upstream_user
 
-		upstream_port = self.upstream.upstream_port
-		self.root_path = self.upstream.upstream_root_path
+		upstream.upstream_port = upstream.upstream_port
+		self.root_path = upstream.upstream_root_path
 
-		if not upstream_user:
-			upstream_user = username
+		if not upstream.upstream_user:
+			upstream.upstream_user = username
 
-		# Local authentication
-		if self.upstream.password and not (self.upstream.password == password):
-			return paramiko.AUTH_FAILED
+		return upstream
 
-		upstream_password = self.upstream.upstream_password if self.upstream.upstream_password else password
-
-		# Connect to the upstream
+	def _connectToUpstream(self, upstream):
 		try:
-			pysshrp.common.logger.info('New upstream connection to %s@%s:%d' % (upstream_user, upstream_host, upstream_port))
+			pysshrp.common.logger.info('New upstream connection to %s@%s:%d' % (upstream.upstream_user, upstream.upstream_host, upstream.upstream_port))
 
-			self.client = paramiko.Transport((upstream_host, upstream_port))
-			self.client.start_client()
-			self.client.auth_password(upstream_user, upstream_password)
-			self.shellchannel = self.client.open_session()
+			self.client = paramiko.SSHClient()
+			self.client.set_missing_host_key_policy(paramiko.client.AutoAddPolicy())
+			self.client.connect(upstream.upstream_host, port=upstream.upstream_port, username=upstream.upstream_user, password=upstream.upstream_password, pkey=upstream.upstream_key)
+			self.shellchannel = self.client.get_transport().open_session()
 
+			self.upstream = upstream
 			return paramiko.AUTH_SUCCESSFUL
 		except paramiko.SSHException:
+			self.upstream = None
 			return paramiko.AUTH_FAILED
 
+	def check_auth_password(self, username, password):
+		# Check the username
+		upstream = self._findUpstream(username)
+		if not upstream:
+			return paramiko.AUTH_FAILED
+
+		# Local authentication
+		if upstream.password and not (upstream.password == password):
+			return paramiko.AUTH_FAILED
+
+		# Connect to the upstream
+		if not upstream.upstream_password:
+			upstream.upstream_password = password
+		return self._connectToUpstream(upstream)
+
 	def check_auth_publickey(self, username, key):
-		return paramiko.AUTH_FAILED
+		# Check the username
+		upstream = self._findUpstream(username)
+		if not upstream:
+			return paramiko.AUTH_FAILED
+
+		# Look for the client key in upstream's authorized_keys file
+		if not upstream.upstream_key:
+			return paramiko.AUTH_FAILED
+
+		authenticated = False
+		if self._connectToUpstream(upstream) == paramiko.AUTH_SUCCESSFUL:
+			try:
+				sftp = self.client.open_sftp()
+				with sftp.file('.ssh/authorized_keys', 'r') as file:
+					for line in file.readlines():
+						line = line.split(' ')
+						if (len(line) >= 2) and (line[0] == key.get_name()) and (line[1] == key.get_base64()):
+							authenticated = True
+							break
+				sftp.close()
+			except Exception:
+				pass
+
+			# Close all connections
+			self.upstream = None
+			self.shellchannel.close()
+			self.client.close()
+
+		if not authenticated:
+			self.upstream = None
+			return paramiko.AUTH_FAILED
+
+		# Connect to the upstream
+		return self._connectToUpstream(upstream)
 
 	def check_channel_request(self, kind, chanid):
 		if kind == 'session':

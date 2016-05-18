@@ -97,6 +97,7 @@ class ConfigUpstream():
 	upstream_host = ''
 	upstream_user = ''
 	upstream_password = ''
+	upstream_key = None
 	upstream_port = 22
 	upstream_root_path = ''
 	allow_ssh = True
@@ -114,6 +115,8 @@ class ConfigUpstream():
 				raise ConfigurationException('value of "upstream_user" must be a string')
 			elif (key == 'upstream_password') and not isinstance(value, str):
 				raise ConfigurationException('value of "upstream_password" must be a string')
+			elif (key == 'upstream_key') and not isinstance(value, str):
+				raise ConfigurationException('value of "upstream_key" must be a string')
 			elif (key == 'upstream_port') and not isinstance(value, int):
 				raise ConfigurationException('value of "upstream_port" must be an integer')
 			elif (key == 'upstream_root_path') and not isinstance(value, str):
@@ -130,3 +133,10 @@ class ConfigUpstream():
 			raise pysshrp.PysshrpException('"user" is mandatory in "servers"')
 		if not self.upstream_host:
 			raise pysshrp.PysshrpException('"upstream_host" is mandatory in "servers"')
+		if self.upstream_key:
+			try:
+				self.upstream_key = paramiko.RSAKey.from_private_key_file(self.upstream_key)
+			except IOError:
+				raise pysshrp.PysshrpException('failed to open SSH key file "%s"' % self.upstream_key)
+			except paramiko.SSHException:
+				raise pysshrp.PysshrpException('invalid SSH key from "%s"' % self.upstream_key)
