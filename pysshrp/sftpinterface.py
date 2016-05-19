@@ -22,7 +22,7 @@ class SFTPInterface(paramiko.SFTPServerInterface):
 	def __init__(self, server, *largs, **kwargs):
 		super(SFTPInterface, self).__init__(server, *largs, **kwargs)
 
-		self.client = paramiko.SFTPClient.from_transport(server.client)
+		self.client = paramiko.SFTPClient.from_transport(server.client.get_transport())
 		self.root_path = server.root_path if ('root_path' in server.__dict__) else ''
 
 	def _parsePath(self, path):
