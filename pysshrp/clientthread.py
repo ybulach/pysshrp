@@ -18,7 +18,7 @@
 
 import paramiko, re
 
-import pysshrp.common
+import copy, pysshrp.common
 
 class ClientThread(paramiko.ServerInterface):
 	def __init__(self):
@@ -42,13 +42,13 @@ class ClientThread(paramiko.ServerInterface):
 				regex_extracts = re.search(server.user, username)
 				if regex_extracts:
 					# Keep searching for something more accurate
-					upstream = server
+					upstream = copy.deepcopy(server)
 
 			# String (more accurate)
 			elif server.user == username:
 				# Nothing can be more accurate
 				regex_extracts = None
-				upstream = server
+				upstream = copy.deepcopy(server)
 				break
 
 		# Get upstream configuration
