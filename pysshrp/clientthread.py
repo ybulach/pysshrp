@@ -51,6 +51,10 @@ class ClientThread(paramiko.ServerInterface):
 				upstream = copy.deepcopy(server)
 				break
 
+		# No match
+		if not upstream:
+			return None
+
 		# Get upstream configuration
 		if regex_extracts:
 			upstream.upstream_host = regex_extracts.expand(upstream.upstream_host)
