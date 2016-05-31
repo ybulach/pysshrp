@@ -3,4 +3,6 @@ build/
 dist/
 pysshrp.egg-info/
 config.py
-server.key
+*.key
+*.crt
+*.log

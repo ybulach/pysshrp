@@ -48,6 +48,10 @@ Once the `/etc/pysshrp/config.py` file has been edited to suit your needs (see *
 
 	/etc/init.d/pysshrpd start
 
+You also may want to add a `logrotate` configuration for the `/var/log/pysshrpd.log` file:
+
+	cp docs/logrotate_sample /etc/logrotate.d/pysshrpd
+
 ## Configuration
 A sample configuration file is available in `docs/config_sample.py`. It is actually a Python script and requires Python syntax.
 

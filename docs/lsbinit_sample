@@ -10,7 +10,7 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON=/usr/local/bin/pysshrpd
-DAEMON_OPTS="-c /etc/pysshrp/config.py"
+DAEMON_OPTS="-c /etc/pysshrp/config.py -l /var/log/pysshrpd.log"
 NAME="pysshrpd"
 DESC="pysshrpd"
 PIDFILE="/var/run/${NAME}.pid"
