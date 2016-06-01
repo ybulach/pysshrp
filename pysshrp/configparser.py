@@ -77,6 +77,8 @@ class ConfigParser:
 			raise pysshrp.PysshrpException('invalid SSH key from "%s"' % self.key)
 
 		logging.getLogger().setLevel(getattr(logging, self.level))
+		if self.level != 'DEBUG':
+			logging.getLogger('paramiko').setLevel(getattr(logging, 'CRITICAL'))
 
 		try:
 			if self.user:

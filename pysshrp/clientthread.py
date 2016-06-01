@@ -16,11 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with pysshrp.  If not, see <http://www.gnu.org/licenses/>.
 
-import paramiko, re
+import logging, paramiko, re
 
 import copy, pysshrp.common
 
 class ClientThread(paramiko.ServerInterface):
+	logger = logging.getLogger('pysshrpd.client')
+
 	def __init__(self):
 		self.client = None
 		self.upstream = None
@@ -53,6 +55,7 @@ class ClientThread(paramiko.ServerInterface):
 
 		# No match
 		if not upstream:
+			self.logger.critical('%s:%d: no upstream found for username "%s"' % (self.client_address + (username,)))
 			return None
 
 		# Get upstream configuration
@@ -73,16 +76,17 @@ class ClientThread(paramiko.ServerInterface):
 
 	def _connectToUpstream(self, upstream):
 		try:
-			pysshrp.common.logger.info('New upstream connection to %s@%s:%d' % (upstream.upstream_user, upstream.upstream_host, upstream.upstream_port))
 
 			self.client = paramiko.SSHClient()
 			self.client.set_missing_host_key_policy(paramiko.client.AutoAddPolicy())
 			self.client.connect(upstream.upstream_host, port=upstream.upstream_port, username=upstream.upstream_user, password=upstream.upstream_password, pkey=upstream.upstream_key)
 			self.shellchannel = self.client.get_transport().open_session()
 
+			self.logger.info('%s:%d: connected to upstream %s@%s:%d' % (self.client_address + (upstream.upstream_user, upstream.upstream_host, upstream.upstream_port)))
 			self.upstream = upstream
 			return paramiko.AUTH_SUCCESSFUL
 		except paramiko.SSHException:
+			self.logger.critical('%s:%d: connection failed to upstream %s@%s:%d' % (self.client_address + (upstream.upstream_user, upstream.upstream_host, upstream.upstream_port)))
 			self.upstream = None
 			return paramiko.AUTH_FAILED
 
@@ -94,6 +98,7 @@ class ClientThread(paramiko.ServerInterface):
 
 		# Local authentication
 		if upstream.password and not (upstream.password == password):
+			self.logger.critical('%s:%d: local authentication of "%s" failed' % (self.client_address + (username,)))
 			return paramiko.AUTH_FAILED
 
 		# Connect to the upstream
@@ -109,6 +114,7 @@ class ClientThread(paramiko.ServerInterface):
 
 		# Look for the client key in upstream's authorized_keys file
 		if not upstream.upstream_key:
+			self.logger.warning('%s:%d: publickey authentication is disabled for "%s"' % (self.client_address + (username,)))
 			return paramiko.AUTH_FAILED
 
 		authenticated = False
@@ -131,6 +137,7 @@ class ClientThread(paramiko.ServerInterface):
 			self.client.close()
 
 		if not authenticated:
+			self.logger.critical('%s:%d: authentication of "%s" with publickey failed' % (self.client_address + (username,)))
 			self.upstream = None
 			return paramiko.AUTH_FAILED
 
@@ -143,6 +150,7 @@ class ClientThread(paramiko.ServerInterface):
 		return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
 	def check_channel_exec_request(self, channel, command):
+		# TODO
 		return False
 
 	def check_channel_shell_request(self, channel):
@@ -154,8 +162,10 @@ class ClientThread(paramiko.ServerInterface):
 
 			self.shellthread = pysshrp.SSHInterface(channel, self.shellchannel)
 			self.shellthread.start()
+			self.logger.info('%s:%d: new shell requested' % self.client_address)
 			return True
 		except paramiko.SSHException:
+			self.logger.critical('%s:%d: shell request failed' % self.client_address)
 			return False
 
 	def check_channel_pty_request(self, channel, term, width, height, pixelwidth, pixelheight, modes):
@@ -164,8 +174,10 @@ class ClientThread(paramiko.ServerInterface):
 
 		try:
 			self.shellchannel.get_pty(term, width, height, pixelwidth, pixelheight)
+			self.logger.info('%s:%d: new pty requested' % self.client_address)
 			return True
 		except paramiko.SSHException:
+			self.logger.critical('%s:%d: pty request failed' % self.client_address)
 			return False
 
 	def check_channel_subsystem_request(self, channel, name):
@@ -174,6 +186,8 @@ class ClientThread(paramiko.ServerInterface):
 
 		try:
 			super(ClientThread, self).check_channel_subsystem_request(channel, name)
+			self.logger.info('%s:%d: new subsystem "%s" requested' % (self.client_address + (name,)))
 			return True
 		except paramiko.SSHException:
+			self.logger.critical('%s:%d: subsystem "%s" request failed' % (self.client_address + (name,)))
 			return False

@@ -16,13 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with pysshrp.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, paramiko, SocketServer, time
+import logging, os, paramiko, SocketServer, time
 
 import pysshrp.common
 from pysshrp.clientthread import ClientThread
 from pysshrp.sftpinterface import SFTPInterface
 
 class RequestHandler(SocketServer.BaseRequestHandler):
+	logger = logging.getLogger('pysshrpd.server')
+
 	def __init__(self, request, client_address, server):
 		# Change user and group (only when runned as root)
 		if (os.getgid() == 0) and pysshrp.common.config.userId:
@@ -33,8 +35,9 @@ class RequestHandler(SocketServer.BaseRequestHandler):
 		SocketServer.BaseRequestHandler.__init__(self, request, client_address, server)
 
 	def setup(self):
-		pysshrp.common.logger.info('New client thread started from %s:%d' % self.client_address)
+		self.logger.info('New client thread started from %s:%d' % self.client_address)
 		self.clientthread = ClientThread()
+		self.clientthread.client_address = self.client_address
 
 		return SocketServer.BaseRequestHandler.setup(self)
 
@@ -51,7 +54,7 @@ class RequestHandler(SocketServer.BaseRequestHandler):
 	def finish(self):
 		if ('client' in self.clientthread.__dict__) and self.clientthread.client:
 			self.clientthread.client.close()
-		pysshrp.common.logger.info('Client thread ended from %s:%d' % self.client_address)
+		self.logger.info('Client thread ended from %s:%d' % self.client_address)
 
 		return SocketServer.BaseRequestHandler.finish(self)
 
