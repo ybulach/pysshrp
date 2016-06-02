@@ -74,12 +74,14 @@ class ClientThread(paramiko.ServerInterface):
 
 		return upstream
 
-	def _connectToUpstream(self, upstream):
+	def _connectToUpstream(self, upstream, password=False, publickey=False):
 		try:
+			upstream_password = upstream.upstream_password if password else None
+			upstream_key = upstream.upstream_key if publickey else None
 
 			self.client = paramiko.SSHClient()
 			self.client.set_missing_host_key_policy(paramiko.client.AutoAddPolicy())
-			self.client.connect(upstream.upstream_host, port=upstream.upstream_port, username=upstream.upstream_user, password=upstream.upstream_password, pkey=upstream.upstream_key)
+			self.client.connect(upstream.upstream_host, port=upstream.upstream_port, username=upstream.upstream_user, password=upstream_password, pkey=upstream_key)
 			self.shellchannel = self.client.get_transport().open_session()
 
 			self.logger.info('%s:%d: connected to upstream %s@%s:%d' % (self.client_address + (upstream.upstream_user, upstream.upstream_host, upstream.upstream_port)))
@@ -106,7 +108,7 @@ class ClientThread(paramiko.ServerInterface):
 		# Connect to the upstream
 		if not upstream.upstream_password:
 			upstream.upstream_password = password
-		return self._connectToUpstream(upstream)
+		return self._connectToUpstream(upstream, password=True)
 
 	def check_auth_publickey(self, username, key):
 		self.logger.info('%s:%d: trying publickey authentication for "%s"' % (self.client_address + (username,)))
@@ -122,7 +124,7 @@ class ClientThread(paramiko.ServerInterface):
 			return paramiko.AUTH_FAILED
 
 		authenticated = False
-		if self._connectToUpstream(upstream) == paramiko.AUTH_SUCCESSFUL:
+		if self._connectToUpstream(upstream, publickey=True) == paramiko.AUTH_SUCCESSFUL:
 			try:
 				sftp = self.client.open_sftp()
 				with sftp.file('.ssh/authorized_keys', 'r') as file:
@@ -146,7 +148,7 @@ class ClientThread(paramiko.ServerInterface):
 			return paramiko.AUTH_FAILED
 
 		# Connect to the upstream
-		return self._connectToUpstream(upstream)
+		return self._connectToUpstream(upstream, publickey=True)
 
 	def check_channel_request(self, kind, chanid):
 		if kind == 'session':
