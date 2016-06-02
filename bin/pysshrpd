@@ -20,7 +20,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-import argparse, logging, pysshrp, signal, threading, time
+import argparse, logging, logging.handlers, pysshrp, signal, threading, time
 
 # Handle signals
 def signals(signum, frame):
@@ -41,11 +41,12 @@ if __name__ == '__main__':
 
 		if args.log:
 			# Started with init.d
-			logging.basicConfig(
-				level=log_level,
-				format='%(asctime)-15s ' + log_format,
-				filename=args.log
-			)
+			log_handler = logging.handlers.WatchedFileHandler(args.log)
+			log_handler.setFormatter(logging.Formatter('%(asctime)-15s ' + log_format))
+
+			root_logger = logging.getLogger()
+			root_logger.addHandler(log_handler)
+			root_logger.setLevel(log_level)
 		else:
 			# Started with systemd
 			logging.basicConfig(
