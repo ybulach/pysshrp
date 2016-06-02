@@ -91,6 +91,8 @@ class ClientThread(paramiko.ServerInterface):
 			return paramiko.AUTH_FAILED
 
 	def check_auth_password(self, username, password):
+		self.logger.info('%s:%d: trying password authentication for "%s"' % (self.client_address + (username,)))
+
 		# Check the username
 		upstream = self._findUpstream(username)
 		if not upstream:
@@ -107,6 +109,8 @@ class ClientThread(paramiko.ServerInterface):
 		return self._connectToUpstream(upstream)
 
 	def check_auth_publickey(self, username, key):
+		self.logger.info('%s:%d: trying publickey authentication for "%s"' % (self.client_address + (username,)))
+
 		# Check the username
 		upstream = self._findUpstream(username)
 		if not upstream:
