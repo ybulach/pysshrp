@@ -45,6 +45,10 @@ class SSHInterface(threading.Thread):
 						self.serverchan.send(x)
 					except socket.timeout:
 						pass
+
+			# Properly handle return code (useful for exec)
+			if self.clientchan.exit_status_ready():
+				self.serverchan.send_exit_status(self.clientchan.recv_exit_status())
 		finally:
 			if self.serverchan:
 				self.serverchan.close()

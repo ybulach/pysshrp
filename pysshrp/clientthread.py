@@ -150,8 +150,19 @@ class ClientThread(paramiko.ServerInterface):
 		return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
 	def check_channel_exec_request(self, channel, command):
-		# TODO
-		return False
+		if not self.upstream or not self.upstream.allow_ssh:
+			return False
+
+		try:
+			self.shellchannel.exec_command(command)
+
+			self.shellthread = pysshrp.SSHInterface(channel, self.shellchannel)
+			self.shellthread.start()
+			self.logger.info('%s:%d: new exec requested' % self.client_address)
+			return True
+		except paramiko.SSHException:
+			self.logger.critical('%s:%d: exec request failed' % self.client_address)
+			return False
 
 	def check_channel_shell_request(self, channel):
 		if not self.upstream or not self.upstream.allow_ssh:
