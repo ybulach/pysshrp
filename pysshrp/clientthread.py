@@ -191,3 +191,15 @@ class ClientThread(paramiko.ServerInterface):
 		except paramiko.SSHException:
 			self.logger.critical('%s:%d: subsystem "%s" request failed' % (self.client_address + (name,)))
 			return False
+
+	def check_channel_window_change_request(self, channel, width, height, pixelwidth, pixelheight):
+		if not self.upstream or not self.upstream.allow_ssh:
+			return False
+
+		try:
+			self.shellchannel.resize_pty(width, height, pixelwidth, pixelheight)
+			self.logger.info('%s:%d: pty resized' % self.client_address)
+			return True
+		except paramiko.SSHException:
+			self.logger.critical('%s:%d: pty resizing failed' % self.client_address)
+			return False
