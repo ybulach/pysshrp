@@ -6,4 +6,5 @@
         notifempty
         delaycompress
         compress
+        copytruncate
 }
