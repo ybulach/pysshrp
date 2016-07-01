@@ -54,35 +54,37 @@ class SFTPInterface(paramiko.SFTPServerInterface):
 			return paramiko.SFTPServer.convert_errno(e.errno)
 
 	def open(self, path, flags, attr):
-		if (flags & os.O_CREAT) and (attr is not None):
-			attr._flags &= ~attr.FLAG_PERMISSIONS
-			paramiko.SFTPServer.set_file_attr(self._parsePath(path), attr)
-		if flags & os.O_WRONLY:
-			if flags & os.O_APPEND:
-				fstr = 'ab'
-			else:
-				fstr = 'wb'
-		elif flags & os.O_RDWR:
-			if flags & os.O_APPEND:
-				fstr = 'a+b'
-			else:
-				fstr = 'r+b'
-		else:
-			# O_RDONLY (== 0)
-			fstr = 'rb'
-
 		try:
+			if (flags & os.O_CREAT) and (attr is not None):
+				attr._flags &= ~attr.FLAG_PERMISSIONS
+				paramiko.SFTPServer.set_file_attr(self._parsePath(path), attr)
+
+			if flags & os.O_WRONLY:
+				if flags & os.O_APPEND:
+					fstr = 'ab'
+				else:
+					fstr = 'wb'
+			elif flags & os.O_RDWR:
+				if flags & os.O_APPEND:
+					fstr = 'a+b'
+				else:
+					fstr = 'r+b'
+			else:
+				# O_RDONLY (== 0)
+				fstr = 'rb'
+
 			f = self.client.open(self._parsePath(path), fstr)
+
+			fobj = paramiko.SFTPHandle(flags)
+			fobj.filename = self._parsePath(path)
+			fobj.readfile = f
+			fobj.writefile = f
+			fobj.client = self.client
+			return fobj
+
+			# TODO: verify (socket.error when stopping file upload/download)
 		except IOError as e:
 			return paramiko.SFTPServer.convert_errno(e.errno)
-
-		fobj = paramiko.SFTPHandle(flags)
-		fobj.filename = self._parsePath(path)
-		fobj.readfile = f
-		fobj.writefile = f
-		fobj.client = self.client
-		return fobj
-		# TODO: verify (socket.error when stopping file upload/download)
 
 	def remove(self, path):
 		try:
