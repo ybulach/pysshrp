@@ -17,10 +17,9 @@
 # along with pysshrp.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-
-from pysshrp.configparser import ConfigParser
+from pysshrp.configurationparser import ConfigurationParser
 
 # Global variables
 logger = logging.getLogger('pysshrp')
-config = ConfigParser
+config = None
 running = False

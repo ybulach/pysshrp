@@ -23,10 +23,17 @@ sys.setdefaultencoding('utf-8')
 import argparse, logging, logging.handlers, pysshrp, signal, threading, time
 
 # Handle signals
-def signals(signum, frame):
+def stop_pysshrpd(signum, frame):
 	pysshrp.common.logger.info('Shutting down pysshrpd')
 	pysshrp.common.running = False
 
+def reload_pysshrpd(signum, frame):
+	try:
+		pysshrp.common.config.reload()
+	except pysshrp.PysshrpException as e:
+		pysshrp.common.logger.critical('Can\'t reload configuration: %s' % e)
+
+# Start pysshrpd
 if __name__ == '__main__':
 	try:
 		# Parse arguments
@@ -57,16 +64,7 @@ if __name__ == '__main__':
 		pysshrp.common.logger.info('*************************************************')
 
 		# Parse configuration file
-		try:
-			config = {}
-			execfile(args.config, config)
-			pysshrp.common.config = pysshrp.ConfigParser(**config)
-		except IOError:
-			raise pysshrp.PysshrpException('Failed to open configuration file "%s"' % args.config)
-		except pysshrp.ConfigurationException as e:
-			raise pysshrp.PysshrpException('Syntax error in "%s": %s' % (args.config, e))
-		except pysshrp.PysshrpException as e:
-			raise pysshrp.PysshrpException('Configuration error: %s' % e)
+		pysshrp.common.config = pysshrp.ConfigurationParser(args.config)
 
 		# Launch server
 		pysshrp.ServerThread.allow_reuse_address = True
@@ -76,8 +74,9 @@ if __name__ == '__main__':
 		thread.daemon = False
 		server.daemon_threads = True
 
-		signal.signal(signal.SIGTERM, signals)
-		signal.signal(signal.SIGINT, signals)
+		signal.signal(signal.SIGTERM, stop_pysshrpd)
+		signal.signal(signal.SIGINT, stop_pysshrpd)
+		signal.signal(signal.SIGHUP, reload_pysshrpd)
 
 		pysshrp.common.running = True
 		pysshrp.common.logger.info('Starting pysshrpd server thread on %s:%d' % listen)

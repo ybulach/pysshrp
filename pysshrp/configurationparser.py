@@ -16,13 +16,51 @@
 # You should have received a copy of the GNU General Public License
 # along with pysshrp.  If not, see <http://www.gnu.org/licenses/>.
 
-import grp, logging, paramiko, pwd, pysshrp, re
+import grp, logging, paramiko, pwd, pysshrp, re, threading
 
 # A class used for configuration syntax exceptions
 class ConfigurationException(Exception):
 	pass
 
-class ConfigParser:
+class ConfigurationParser():
+	def __init__(self, filename):
+		self.filename = filename
+		self.lock = threading.Lock()
+		self.config = None
+
+		self.reload()
+
+	def reload(self):
+		try:
+			self.lock.acquire()
+			pysshrp.common.logger.info('Loading configuration')
+
+			config = {}
+			execfile(self.filename, config)
+
+			self.config = ConfigGlobal(**config)
+		except IOError:
+			raise pysshrp.PysshrpException('Failed to open configuration file "%s"' % self.filename)
+		except SyntaxError:
+			raise pysshrp.PysshrpException('Invalid syntax in configuration file "%s"' % self.filename)
+		except ConfigurationException as e:
+			raise pysshrp.PysshrpException('Syntax error in "%s": %s' % (self.filename, e))
+		except pysshrp.PysshrpException as e:
+			raise pysshrp.PysshrpException('Configuration error: %s' % e)
+		finally:
+			self.lock.release()
+			pysshrp.common.logger.info('Configuration loaded successfully')
+
+	def __getattr__(self, name):
+		value = None
+		try:
+			self.lock.acquire()
+			value = getattr(self.config, name)
+		finally:
+			self.lock.release()
+			return value
+
+class ConfigGlobal():
 	# Default values
 	listen = '0.0.0.0:2200'
 	listenAddress = ''
@@ -37,7 +75,8 @@ class ConfigParser:
 	servers = []
 
 	def __init__(self, *args, **kwargs):
-		pysshrp.common.logger.info('Loading configuration')
+		self.servers = []
+		self.keyData = None
 
 		log_values = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
 		for key, value in kwargs.items():
