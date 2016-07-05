@@ -4,6 +4,7 @@ After=network.target
 
 [Service]
 ExecStart=/usr/local/bin/pysshrpd -c /etc/pysshrp/config.py
+ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
 WantedBy=multi-user.target
