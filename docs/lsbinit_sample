@@ -32,7 +32,7 @@ case "$1" in
     ;;
     reload)
         log_begin_msg "Reloading $DESC"
-        start-stop-daemon --stop --signal HUP --quiet --oknodo --pidfile PIDFILE
+        start-stop-daemon --stop --signal HUP --quiet --oknodo --pidfile $PIDFILE
         log_end_msg $?
     ;;
     status)
