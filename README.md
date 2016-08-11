@@ -55,6 +55,10 @@ You also may want to add a `logrotate` configuration for the `/var/log/pysshrpd.
 ## Configuration
 A sample configuration file is available in `docs/config_sample.py`. It is actually a Python script and requires Python syntax.
 
+You can "include" other configuration files using this syntax:
+
+	execfile('/etc/pysshrp/conf.d/myconfiguration.py')
+
 ### Global configuration
 The below variables take care of the configuration of the `pysshrpd` daemon itself.
 

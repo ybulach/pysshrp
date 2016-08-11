@@ -39,10 +39,10 @@ class ConfigurationParser():
 			execfile(self.filename, config)
 
 			self.config = ConfigGlobal(**config)
-		except IOError:
-			raise pysshrp.PysshrpException('Failed to open configuration file "%s"' % self.filename)
-		except SyntaxError:
-			raise pysshrp.PysshrpException('Invalid syntax in configuration file "%s"' % self.filename)
+		except IOError as e:
+			raise pysshrp.PysshrpException('Failed to open configuration file "%s" (originated from "%s")' % (e.filename, self.filename))
+		except SyntaxError as e:
+			raise pysshrp.PysshrpException('Invalid syntax in configuration file "%s" at line %d' % (e.filename, e.lineno))
 		except ConfigurationException as e:
 			raise pysshrp.PysshrpException('Syntax error in "%s": %s' % (self.filename, e))
 		except pysshrp.PysshrpException as e:
