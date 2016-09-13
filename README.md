@@ -27,7 +27,7 @@ This will create a configuration directory in `/etc/pysshrp` with a server key (
 ### systemd
 For systemd-based OS, you can use the service file:
 
-	cp docs/systemd_sample.service /etc/systemd/system/
+	cp docs/systemd_sample.service /etc/systemd/system/pysshrpd.service
 	systemctl daemon-reload
 
 Once the `/etc/pysshrp/config.py` file has been edited to suit your needs (see **Configuration** below), the service can be started with:
