@@ -139,6 +139,7 @@ class ConfigUpstream():
 	upstream_user = ''
 	upstream_password = ''
 	upstream_key = None
+	upstream_authorized_keys = '.ssh/authorized_keys'
 	upstream_port = 22
 	upstream_root_path = ''
 	allow_ssh = True
@@ -158,6 +159,8 @@ class ConfigUpstream():
 				raise ConfigurationException('value of "upstream_password" must be a string')
 			elif (key == 'upstream_key') and not isinstance(value, str):
 				raise ConfigurationException('value of "upstream_key" must be a string')
+			elif (key == 'upstream_authorized_keys') and not isinstance(value, str):
+				raise ConfigurationException('value of "upstream_authorized_keys" must be a string')
 			elif (key == 'upstream_port') and not isinstance(value, int):
 				raise ConfigurationException('value of "upstream_port" must be an integer')
 			elif (key == 'upstream_root_path') and not isinstance(value, str):

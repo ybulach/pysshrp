@@ -77,6 +77,7 @@ Upstream servers configuration is made in `servers` (must be an **array**). Each
 - `upstream_user`: set another login for the upstream server
 - `upstream_password`: set another password for the upstream server
 - `upstream_key`: path to an SSH private key to use to connect to the upstream server (must be created manually). The public part must be added in the upstream's `authorized_keys` file
+- `upstream_authorized_keys`: path to the `authorized_keys` file on the upstream server, used to look for the client public key
 - `upstream_port`: the port of the upstream server
 - `upstream_root_path`: the base path for SFTP connections (client will not be able to go in a parent directory)
 

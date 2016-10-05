@@ -127,7 +127,7 @@ class ClientThread(paramiko.ServerInterface):
 		if self._connectToUpstream(upstream, publickey=True) == paramiko.AUTH_SUCCESSFUL:
 			try:
 				sftp = self.client.open_sftp()
-				with sftp.file('.ssh/authorized_keys', 'r') as file:
+				with sftp.file(upstream.upstream_authorized_keys, 'r') as file:
 					for line in file.readlines():
 						line = line.split(' ')
 						if (len(line) >= 2) and (line[0] == key.get_name()) and (line[1] == key.get_base64()):
@@ -135,7 +135,7 @@ class ClientThread(paramiko.ServerInterface):
 							break
 				sftp.close()
 			except Exception:
-				self.logger.info('%s:%d: an error occurred while looking for the public key of "%s" in upstream\'s .ssh/authorized_keys file' % (self.client_address + (username,)))
+				self.logger.info('%s:%d: an error occurred while looking for the public key of "%s" in upstream\'s "%s" file' % (self.client_address + (username, upstream.upstream_authorized_keys)))
 				self.logger.debug('Catched exception', exc_info=True)
 
 			# Close all connections
