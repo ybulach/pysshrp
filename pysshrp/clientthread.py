@@ -135,7 +135,8 @@ class ClientThread(paramiko.ServerInterface):
 							break
 				sftp.close()
 			except Exception:
-				pass
+				self.logger.info('%s:%d: an error occurred while looking for the public key of "%s" in upstream\'s .ssh/authorized_keys file' % (self.client_address + (username,)))
+				self.logger.debug('Catched exception', exc_info=True)
 
 			# Close all connections
 			self.upstream = None
